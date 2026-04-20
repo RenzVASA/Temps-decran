@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temps d'écran — Premier bac</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:   #3266ad;
+    --green:  #1D9E75;
+    --amber:  #BA7517;
+    --pink:   #D4537E;
+    --purple: #7F77DD;
+    --red:    #E24B4A;
+    --gray:   #888780;
+    --bg:     #0e0f13;
+    --surface: #16181f;
+    --border: rgba(255,255,255,0.07);
+    --text:   #f0ede8;
+    --muted:  #8a8880;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 3rem 1.5rem;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 3.5rem;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .header-tag {
+    display: inline-block;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #ccc;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+
+  .header h1 span {
+    color: var(--blue);
+  }
+
+  .header p {
+    color: #ccc;
+    font-size: 15px;
+  }
+
+  /* Metric cards */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 3rem;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .metric:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.15);
+  }
+
+  .metric::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .metric.tel::before  { background: var(--blue); }
+  .metric.ordi::before { background: var(--green); }
+  .metric.console::before { background: var(--amber); }
+  .metric.tv::before   { background: var(--pink); }
+
+  .metric-icon { font-size: 16px; margin-bottom: 6px; }
+  .metric-label { font-size: 13px; color: #ffffff; margin-bottom: 6px; font-weight: 500; }
+  .metric-value { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 700; }
+  .metric.tel .metric-value  { color: #6b9de8; }
+  .metric.ordi .metric-value { color: #2ecc9a; }
+  .metric.console .metric-value { color: #f0a830; }
+  .metric.tv .metric-value   { color: #e87aa0; }
+  .metric-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
+
+  /* Section */
+  .section {
+    margin-bottom: 3rem;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #ffffff;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Chart containers */
+  .chart-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 1.2rem;
+    font-size: 13px;
+    color: #ffffff;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* Two-col layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  @media (max-width: 640px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  /* Alert banner */
+  .alert {
+    background: rgba(50, 102, 173, 0.1);
+    border: 1px solid rgba(50, 102, 173, 0.3);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: fadeUp 0.6s 0.35s ease both;
+  }
+
+  .alert-icon { font-size: 20px; flex-shrink: 0; }
+  .alert-text strong { font-weight: 500; color: #85b7eb; }
+  .alert-text { font-size: 14px; color: #ddd; }
+
+  /* Footer */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    margin-top: 3rem;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="header-tag">Premier bac · 13 élèves</div>
+    <h1>Nos <span>temps d'écran</span></h1>
+    <p>Moyennes hebdomadaires par type d'écran et par usage · par élève</p>
+  </div>
+
+  <!-- Metric cards -->
+  <div class="metrics">
+    <div class="metric tel">
+      <div class="metric-icon">📱</div>
+      <div class="metric-label">Téléphone</div>
+      <div class="metric-value">39h</div>
+      <div class="metric-sub">moy. / élève</div>
+    </div>
+    <div class="metric ordi">
+      <div class="metric-icon">💻</div>
+      <div class="metric-label">Ordinateur</div>
+      <div class="metric-value">16h</div>
+      <div class="metric-sub">moy. / élève</div>
+    </div>
+    <div class="metric console">
+      <div class="metric-icon">🎮</div>
+      <div class="metric-label">Console</div>
+      <div class="metric-value">9h</div>
+      <div class="metric-sub">moy. / élève</div>
+    </div>
+    <div class="metric tv">
+      <div class="metric-icon">📺</div>
+      <div class="metric-label">Télévision</div>
+      <div class="metric-value">5h</div>
+      <div class="metric-sub">moy. / élève</div>
+    </div>
+  </div>
+
+  <!-- Two col: donut + bar usage -->
+  <div class="two-col">
+    <div>
+      <div class="section-title">Répartition des usages · moy. / élève</div>
+      <div class="chart-box">
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#7F77DD"></span>Réseaux / vidéos</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#E24B4A"></span>Jeux</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#aaaaaa"></span>Travail</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#1D9E75"></span>Autres</span>
+        </div>
+        <div style="position:relative; height:220px;">
+          <canvas id="chartDonut" role="img" aria-label="Répartition des usages en anneau">Réseaux 53%, Jeux 30%, Travail 14%, Autres 3%.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Réseaux sociaux · moy. / élève</div>
+      <div class="chart-box">
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#E24B4A"></span>TikTok</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#7F77DD"></span>Instagram</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#3266ad"></span>Discord</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#BA7517"></span>Snapchat</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#1D9E75"></span>YouTube</span>
+        </div>
+        <div style="position:relative; height:220px;">
+          <canvas id="chartReseaux" role="img" aria-label="Moyenne de temps passé sur les réseaux sociaux par élève">TikTok 8.8h, Discord 4.1h, Instagram 2.9h, Snapchat 1.3h, YouTube 1.3h.</canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert -->
+  <div class="alert" style="margin-top:2rem;">
+    <div class="alert-icon">💡</div>
+    <div class="alert-text">
+      <strong>Chiffre clé :</strong> en moyenne, chaque élève passe ~69h/semaine devant un écran, soit plus de 9h par jour. Le téléphone représente plus de la moitié de ce temps.
+    </div>
+  </div>
+
+  <div class="footer">Données collectées auprès de 13 élèves · Classe Premier bac</div>
+
+</div>
+
+<script>
+const gridColor = 'rgba(255,255,255,0.08)';
+Chart.defaults.color = '#ffffff';
+Chart.defaults.font.family = 'DM Sans';
+
+const donutData = [20.4, 11.8, 5.2, 1.1];
+const donutTotal = donutData.reduce((a,b)=>a+b,0);
+const donutLabels = ['Réseaux / vidéos','Jeux','Travail / cours','Autres'];
+const donutColors = ['#7F77DD','#E24B4A','#aaaaaa','#1D9E75'];
+
+const donutLabelPlugin = {
+  id: 'donutLabels',
+  afterDatasetDraw(chart) {
+    const {ctx, data} = chart;
+    const meta = chart.getDatasetMeta(0);
+    meta.data.forEach((arc, i) => {
+      const angle = (arc.startAngle + arc.endAngle) / 2;
+      const r = (arc.innerRadius + arc.outerRadius) / 2;
+      const x = arc.x + Math.cos(angle) * r;
+      const y = arc.y + Math.sin(angle) * r;
+      const val = data.datasets[0].data[i];
+      const pct = Math.round(val / donutTotal * 100);
+      ctx.save();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 13px DM Sans';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(pct + '%', x, y - 6);
+      ctx.font = '11px DM Sans';
+      ctx.fillText(val.toFixed(1)+'h', x, y + 8);
+      ctx.restore();
+    });
+  }
+};
+
+new Chart(document.getElementById('chartDonut'), {
+  type: 'doughnut',
+  plugins: [donutLabelPlugin],
+  data: {
+    labels: donutLabels,
+    datasets: [{ data: donutData, backgroundColor: donutColors, borderWidth: 0 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: {
+      label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}h`
+    }}}
+  }
+});
+
+new Chart(document.getElementById('chartReseaux'), {
+  type: 'bar',
+  data: {
+    labels: ['TikTok','Discord','Instagram','Snapchat','YouTube'],
+    datasets: [{
+      data: [8.8, 4.1, 2.9, 1.3, 1.3],
+      backgroundColor: ['#E24B4A','#3266ad','#7F77DD','#BA7517','#1D9E75'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      datalabels: { display: false }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'heures / semaine (moy.)', color: '#ccc' },
+        grid: { color: gridColor },
+        ticks: { color: '#ffffff' }
+      },
+      y: {
+        grid: { display: false },
+        ticks: { color: '#ffffff', font: { size: 13 } }
+      }
+    },
+    animation: { onComplete: function() {
+      const chart = this;
+      const ctx = chart.ctx;
+      const meta = chart.getDatasetMeta(0);
+      meta.data.forEach((bar, i) => {
+        const val = chart.data.datasets[0].data[i];
+        const x = bar.x + 6;
+        const y = bar.y;
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px DM Sans';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(val + 'h', x, y);
+        ctx.restore();
+      });
+    }}
+  }
+});
+</script>
+</body>
+</html>

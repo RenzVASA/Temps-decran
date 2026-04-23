@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speech — Temps d'écran · 1ère CIEL</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0b;
+  --surface: #111113;
+  --border: rgba(255,255,255,0.08);
+  --accent: #e8c97a;
+  --accent2: #6b9de8;
+  --text: #f0ede8;
+  --muted: #666;
+  --dim: #333;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* Noise overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 52px 40px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* TOP META */
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--dim);
+  padding-bottom: 18px;
+  margin-bottom: 52px;
+  opacity: 0;
+  animation: up 0.5s 0.1s ease forwards;
+}
+
+.meta-left {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.meta-right {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+.meta-tag {
+  display: inline-block;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 2px;
+}
+
+/* TITLE BLOCK */
+.title-block {
+  margin-bottom: 56px;
+  opacity: 0;
+  animation: up 0.5s 0.2s ease forwards;
+}
+
+.title-block h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.title-block h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.title-block .sub {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+/* SECTIONS */
+.section {
+  margin-bottom: 44px;
+  opacity: 0;
+  animation: up 0.5s ease forwards;
+}
+
+.section:nth-child(3) { animation-delay: 0.3s; }
+.section:nth-child(4) { animation-delay: 0.35s; }
+.section:nth-child(5) { animation-delay: 0.4s; }
+.section:nth-child(6) { animation-delay: 0.45s; }
+.section:nth-child(7) { animation-delay: 0.5s; }
+
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--dim);
+}
+
+.section p {
+  color: #ccc;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.85;
+}
+
+.section p strong {
+  color: #fff;
+  font-weight: 500;
+}
+
+/* STATS ROW */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--dim);
+  border: 1px solid var(--dim);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.stat {
+  background: var(--surface);
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.stat-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-val.blue  { color: #6b9de8; }
+.stat-val.green { color: #2ecc9a; }
+.stat-val.amber { color: #f0a830; }
+.stat-val.pink  { color: #e87aa0; }
+
+.stat-lbl {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* APPS LIST */
+.apps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--dim);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.app-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 60px;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--dim);
+  background: var(--surface);
+  transition: background 0.15s;
+}
+
+.app-row:last-child { border-bottom: none; }
+.app-row:hover { background: #16161a; }
+
+.app-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.app-desc {
+  font-size: 12px;
+  color: #888;
+  font-weight: 300;
+}
+
+.app-time {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.app-bar-wrap {
+  grid-column: 1 / -1;
+  height: 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
+  margin-top: -6px;
+  margin-bottom: 2px;
+  display: none;
+}
+
+/* USAGE BARS */
+.usages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.usage-item {}
+
+.usage-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+
+.usage-name { color: #ddd; }
+.usage-val  { color: #fff; font-weight: 500; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+
+.usage-track {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.usage-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+/* HIGHLIGHT BOX */
+.highlight {
+  border-left: 2px solid var(--accent);
+  padding: 16px 20px;
+  background: rgba(232, 201, 122, 0.04);
+  border-radius: 0 4px 4px 0;
+  margin-top: 16px;
+}
+
+.highlight p {
+  font-size: 13px;
+  color: #bbb;
+  line-height: 1.75;
+}
+
+.highlight p strong { color: var(--accent); }
+
+/* CONCLUSION */
+.conclusion {
+  border-top: 1px solid var(--dim);
+  padding-top: 36px;
+  margin-top: 8px;
+}
+
+.conclusion p {
+  font-size: 14px;
+  color: #aaa;
+  line-height: 1.9;
+  font-weight: 300;
+  margin-bottom: 14px;
+}
+
+.conclusion p:last-child { margin-bottom: 0; }
+
+.conclusion strong { color: #fff; font-weight: 500; }
+
+.conclusion .finale {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  color: var(--accent);
+  margin-top: 24px;
+  display: block;
+}
+
+/* FOOTER */
+.footer {
+  margin-top: 52px;
+  padding-top: 18px;
+  border-top: 1px solid var(--dim);
+  display: flex;
+  justify-content: space-between;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  opacity: 0;
+  animation: up 0.5s 0.6s ease forwards;
+}
+
+.timer {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+@keyframes up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="meta">
+    <div class="meta-left">
+      Speech · Conférence publique &nbsp;/&nbsp; Terminale CIEL
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="meta-tag">~10 min</span>
+      <span class="meta-right">1ère CIEL · 13 élèves</span>
+    </div>
+  </div>
+
+  <div class="title-block">
+    <h1>Nos <em>temps d'écran</em><br>— les vrais chiffres.</h1>
+    <p class="sub">Données collectées sur une semaine · filière CIEL · première</p>
+  </div>
+
+  <!-- INTRO -->
+  <div class="section">
+    <div class="section-label">Introduction</div>
+    <p>
+      Bonjour à tous. Je m'appelle [prénom], je suis en <strong>terminale CIEL</strong>. Dans le cadre d'un projet, on a voulu analyser les habitudes numériques des élèves de notre filière. On aurait voulu interroger plusieurs classes, mais avec le calendrier des stages ça n'a pas pu coller — on a donc travaillé avec la classe de <strong>première CIEL</strong>, 13 élèves, sur une semaine complète. Ce sont leurs vrais chiffres, relevés sur leurs propres appareils.
+    </p>
+  </div>
+
+  <!-- CHIFFRES GLOBAUX -->
+  <div class="section">
+    <div class="section-label">Chiffres globaux</div>
+    <p>
+      En moyenne, un élève de cette classe passe <strong>69 heures par semaine</strong> devant un écran. C'est plus de <strong>9 heures par jour</strong>, 7 jours sur 7. Sur les 112 heures qu'on passe éveillés dans une semaine, <strong>61% sont devant un écran</strong>.
+    </p>
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-val blue">39h</div>
+        <div class="stat-lbl">📱 Téléphone</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val green">16h</div>
+        <div class="stat-lbl">💻 Ordinateur</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val amber">9h</div>
+        <div class="stat-lbl">🎮 Console</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val pink">5h</div>
+        <div class="stat-lbl">📺 Télévision</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USAGES -->
+  <div class="section">
+    <div class="section-label">Répartition des usages</div>
+    <p>Ce temps se répartit en 4 grandes catégories. Sur 69h d'écran, seulement <strong>5h servent les études</strong>.</p>
+    <div class="usages">
+      <div class="usage-item">
+        <div class="usage-head">
+          <span class="usage-name">Réseaux &amp; vidéos</span>
+          <span class="usage-val">20.4h &nbsp;·&nbsp; 53%</span>
+        </div>
+        <div class="usage-track"><div class="usage-fill" style="width:53%;background:#7F77DD"></div></div>
+      </div>
+      <div class="usage-item">
+        <div class="usage-head">
+          <span class="usage-name">Jeux</span>
+          <span class="usage-val">11.8h &nbsp;·&nbsp; 30%</span>
+        </div>
+        <div class="usage-track"><div class="usage-fill" style="width:30%;background:#E24B4A"></div></div>
+      </div>
+      <div class="usage-item">
+        <div class="usage-head">
+          <span class="usage-name">Travail / cours</span>
+          <span class="usage-val">5.2h &nbsp;·&nbsp; 14%</span>
+        </div>
+        <div class="usage-track"><div class="usage-fill" style="width:14%;background:#c0c0c0"></div></div>
+      </div>
+      <div class="usage-item">
+        <div class="usage-head">
+          <span class="usage-name">Autres</span>
+          <span class="usage-val">1.1h &nbsp;·&nbsp; 3%</span>
+        </div>
+        <div class="usage-track"><div class="usage-fill" style="width:3%;background:#1D9E75"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RÉSEAUX SOCIAUX -->
+  <div class="section">
+    <div class="section-label">Réseaux sociaux — 18h/semaine · 2h30/jour</div>
+    <p>On a <strong>5 applications</strong> qui ressortent des données.</p>
+    <div class="apps">
+      <div class="app-row">
+        <div class="app-name">TikTok</div>
+        <div class="app-desc">Vidéos courtes, scroll infini. Algorithme conçu pour maximiser le temps passé. L'appli la plus chronophage, de loin.</div>
+        <div class="app-time" style="color:#E24B4A">8h45</div>
+      </div>
+      <div class="app-row">
+        <div class="app-name">Discord</div>
+        <div class="app-desc">Messagerie et salons vocaux. Utilisé pour jouer en ligne et rester en contact. Souvent allumé en fond sans qu'on s'en rende compte.</div>
+        <div class="app-time" style="color:#6b9de8">4h00</div>
+      </div>
+      <div class="app-row">
+        <div class="app-name">Instagram</div>
+        <div class="app-desc">Messages, stories, appels. Le réseau de l'image et des échanges entre amis.</div>
+        <div class="app-time" style="color:#a89fe8">3h00</div>
+      </div>
+      <div class="app-row">
+        <div class="app-name">Snapchat</div>
+        <div class="app-desc">Quasi exclusivement des messages. Présent chez tous les élèves mais en faible volume.</div>
+        <div class="app-time" style="color:#f0a830">1h00</div>
+      </div>
+      <div class="app-row">
+        <div class="app-name">YouTube</div>
+        <div class="app-desc">Vidéos longues, utilisé de façon ponctuelle et intentionnelle. Plus ciblé que TikTok.</div>
+        <div class="app-time" style="color:#2ecc9a">1h00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONCLUSION -->
+  <div class="section conclusion">
+    <div class="section-label">Conclusion</div>
+    <p>
+      Ces chiffres portent sur une seule classe de la filière CIEL, donc ils ne sont pas représentatifs de tous les lycéens — c'est une limite qu'on assume. Mais pour une filière <strong>orientée numérique et réseaux</strong>, c'est particulièrement parlant : ce sont des élèves qui baignent dans la tech, qui la comprennent, et pourtant les chiffres sont les mêmes que partout ailleurs.
+    </p>
+    <p>
+      <strong>Connaître la technologie ne protège pas forcément d'en être captif.</strong>
+    </p>
+    <p>
+      Ces applications sont très bien conçues pour capter l'attention. 69h par semaine, c'est rarement un choix réfléchi — c'est du temps qui part sans qu'on le voit.
+    </p>
+    <p>
+      Ce soir, allez voir vos propres chiffres dans les paramètres de votre téléphone. Juste regarder — c'est déjà un premier pas.
+    </p>
+    <span class="finale">Merci.</span>
+  </div>
+
+  <div class="footer">
+    <span>Données · 1ère CIEL · 13 élèves · une semaine</span>
+    <span class="timer">Durée estimée : 9 – 10 min</span>
+  </div>
+
+</div>
+</body>
+</html>
